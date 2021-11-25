@@ -103,7 +103,7 @@
     <view bindtap="operate_like" class='tab-item' data-like='{{work_item.like}}'>
       <image src='{{work_item.like==1 ? "../../static/liked.png":"../../static/like.png"}}' class='bottom_icons'></image>
     </view>
-    <view class='translation'>
+    <view class='translation' bindtouchstart="touch_start" bindtouchend="touch_end" data-currentab="{{current_tab}}">
       <text decode='true' space='nbsp' selectable="true">{{show_content}}</text>
     </view>
   </view>
@@ -112,7 +112,7 @@
     <image src='{{folding ? "../../static/unfold.png":"../../static/fold.png"}}' style='width:60rpx;height:60rpx;z-index: 99999;'></image>
   </view>
   <!--以下为注释-->
-  <view style="display: {{annotation_detail.show ? 'inherit': 'none'}};position: absolute;left: {{annotation_detail.left}}px;top: {{annotation_detail.top}}px;background-color: #f3f3f2; color:#392f41;border-radius: 20rpx;padding: 12rpx;border: 1rpx dashed #7c4b00; margin-right: 20rpx;" bindtap="close_anno">{{annotation_detail.detail}}</view>
+  <view style="display: {{annotation_detail.show ? 'inherit': 'none'}};position: absolute;left: {{annotation_detail.left}}px;top: {{annotation_detail.top}}px;background-color: #f3f3f2; color:#392f41;border-radius: 20rpx;padding: 10rpx;border: 1rpx dashed #7c4b00; margin-right: 20rpx;" bindtap="close_anno">{{annotation_detail.detail}}</view>
   <!--以下为播放列表界面-->
   <view wx:if="{{playlist.length > 0 && show_playlist_flag}}" class="playlist">
     <view class="playlist_text">
@@ -134,26 +134,29 @@
   <!--以下为错误反馈-->
   <view wx:if="{{show_feedback}}" class="feedback">
     <view class="feedback_text">
-      <icon type="clear" style="float: right;margin-right: 15rpx;margin-top: 10rpx;" color="#c0c6c9" size="30rpx" bindtap="close_feedback"></icon>错误反馈
+      <icon type="clear" style="float: right;margin-right: 15rpx;margin-top: 10rpx;" color="#c0c6c9" size="30rpx" bindtap="close_feedback"></icon>{{fti ? '錯誤反饋': '错误反馈'}}
     </view>
     <view>
       <checkbox-group bindchange="feedback_checked">
         <view class="weui-cell__hd">
-          <checkbox value="1" color="#617172" class="feedback_checkbox">标题有误</checkbox>
-          <checkbox value="2" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;">作者有误</checkbox>
+          <checkbox value="1" color="#617172" class="feedback_checkbox">{{fti ? '標題有誤': '标题有误'}}</checkbox>
+          <checkbox value="2" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;">{{fti ? '作者有誤': '作者有误'}}</checkbox>
         </view>
         <view class="weui-cell__hd">
-          <checkbox value="4" color="#617172" class="feedback_checkbox">内容有误</checkbox>
-          <checkbox value="8" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;">注释有误</checkbox>
+          <checkbox value="4" color="#617172" class="feedback_checkbox">{{fti ? '內容有誤': '内容有误'}}</checkbox>
+          <checkbox value="8" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;">{{fti ? '註釋有誤': '内容有误'}}</checkbox>
         </view>
         <view class="weui-cell__hd">
-          <checkbox value="32" color="#617172" class="feedback_checkbox" >排版错乱</checkbox>
-          <checkbox value="16" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;" wx:if="{{work_item.audio_id > 0}}">音频有误</checkbox>
+          <checkbox value="32" color="#617172" class="feedback_checkbox">{{fti ? '排版錯亂': '排版错乱'}}</checkbox>
+          <checkbox value="16" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;" wx:if="{{work_item.audio_id > 0}}">{{fti ? '音頻有誤': '音频有误'}}</checkbox>
+        </view>
+        <view class="weui-cell__hd">
+          <checkbox value="64" color="#617172" class="feedback_checkbox">{{fti ? '其他錯誤': '其他错误'}}</checkbox>
         </view>
       </checkbox-group>
-      <textarea placeholder="请输入错误详细说明，以便修正..." class="remark" placeholder-style="color:#617172;" value="{{feedback_remark}}" bindinput="feedback_remark_input" maxlength="500" adjust-position="true"></textarea>
+      <textarea placeholder="{{fti ? '請輸入錯誤詳細說明，以便修正...': '请输入错误详细说明，以便修正...'}}" class="remark" placeholder-style="color:#617172;" value="{{feedback_remark}}" bindinput="feedback_remark_input" maxlength="500" adjust-position="true"></textarea>
       <view style="display: flex;margin-top: 20rpx;">
-        <input type="text" style="flex: 5;height: 80rpx;border: 1rpx dashed #617172; border-radius: 10rpx;margin-left: 25rpx;padding-left: 16rpx;caret-color: #617172;" placeholder="6位数字验证码" bindinput="captcha_input" value="{{captcha_data}}" />
+        <input type="text" style="flex: 5;height: 80rpx;border: 1rpx dashed #617172; border-radius: 10rpx;margin-left: 25rpx;padding-left: 16rpx;caret-color: #617172;" placeholder="{{fti ? '6位數字驗證碼': '6位数字验证码'}}" bindinput="captcha_input" value="{{captcha_data}}" />
         <image bindtap="refresh" src="data:image/png;base64,{{captcha.captcha}}" style="height: 80rpx;width: 160rpx;margin-right: 25rpx;margin-left: 10rpx;"></image>
       </view>
       <button type="primary" style="color: #617172;margin-top: 20rpx;margin-left: 25rpx;margin-right: 25rpx;border:1rpx dashed #617172" bindtap="feedback_submit" plain="true">提交</button>

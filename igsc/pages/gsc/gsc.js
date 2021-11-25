@@ -24,7 +24,7 @@ Page({
     },
     slide_value: 0,
     time2close: 0,
-    close_play_time: 0,
+    close_play_time: '',
     sliding: 0, // 1 正在滑动 2 刚刚有滑动
     playing_audio_id: 0, // 正在播放的id
     speeching: false,
@@ -58,6 +58,7 @@ Page({
       captcha: ''
     },
     captcha_data: '',
+    move_start_x: 0,
   },
   set_timed: function () {
     var that = this
@@ -110,7 +111,7 @@ Page({
           }
           that.setData({
             time2close: 0,
-            close_play_time: 0,
+            close_play_time: '',
           })
         } else {
           var time2close = (new Date).getTime() / 1000 + seconds
@@ -127,7 +128,7 @@ Page({
             wx.setStorageSync('close_play_time', parseInt(seconds / 60))
             that.setData({
               time2close: time2close,
-              close_play_time: parseInt(seconds / 60),
+              close_play_time: Math.ceil(seconds / 60),
             })
             var timedId = setInterval(() => {
               try {
@@ -139,7 +140,7 @@ Page({
                 that.pause_play_back_audio()
                 that.setData({
                   time2close: 0,
-                  close_play_time: 0,
+                  close_play_time: '',
                 })
                 wx.showToast({
                   title: that.data.fti ? '定時已到~~' : '定时已到~~',
@@ -373,7 +374,11 @@ Page({
           var last_micro_seconds = time2close - (new Date()).getTime() / 1000
           if (last_micro_seconds > 0) {
             that.setData({
-              close_play_time: parseInt(last_micro_seconds / 60.0 + 0.5),
+              close_play_time: Math.ceil(last_micro_seconds / 60.0),
+            })
+          } else {
+            that.setData({
+              close_play_time: '',
             })
           }
         }
@@ -834,23 +839,51 @@ Page({
       })
     }
   },
-  change_content: function (e) {
-    var target_id = e.currentTarget.dataset.item
+  _change_content: function (target_id, direction = '') {
     var gsc = this.data.work_item
     var show_content = ''
-    switch ('' + target_id) {
-      case '0':
+    target_id = parseInt(target_id)
+    switch (target_id) {
+      case 0:
         show_content = gsc.intro
-        break
-      case '1':
-        show_content = gsc.annotation
-        break
-      case '2':
-        show_content = gsc.translation
-        break
-      case '3':
-        show_content = gsc.appreciation
-        break
+        if (show_content && show_content.length > 0) {
+          break
+        }
+        if (direction == 'left') {
+          return this._change_content(1, direction)
+        } else if (direction == 'right') {
+          return this._change_content(3, direction)
+        }
+        case 1:
+          show_content = gsc.annotation
+          if (show_content && show_content.length > 0) {
+            break
+          }
+          if (direction == 'left') {
+            return this._change_content(2, direction)
+          } else if (direction == 'right') {
+            return this._change_content(0, direction)
+          }
+          case 2:
+            show_content = gsc.translation
+            if (show_content && show_content.length > 0) {
+              break
+            }
+            if (direction == 'left') {
+              return this._change_content(3, direction)
+            } else if (direction == 'right') {
+              return this._change_content(1, direction)
+            }
+            case 3:
+              show_content = gsc.appreciation
+              if (show_content && show_content.length > 0) {
+                break
+              }
+              if (direction == 'left') {
+                return this._change_content(0, direction)
+              } else if (direction == 'right') {
+                return this._change_content(2, direction)
+              }
     }
     show_content = show_content.replace(/　　/g, '')
     show_content = show_content.replace(/\n/g, '\n　　')
@@ -864,6 +897,33 @@ Page({
       current_tab: target_id,
       show_content: show_content,
     })
+  },
+  change_content: function (e) {
+    this._change_content(e.currentTarget.dataset.item)
+  },
+  touch_start: function (e) {
+    this.setData({
+      move_start_x: e.changedTouches[0].pageX
+    })
+  },
+  touch_end: function (e) {
+    var current_tab = parseInt(e.currentTarget.dataset.currentab)
+    if (e.changedTouches[0].pageX - this.data.move_start_x > 90) {
+      if (current_tab == 0) {
+        current_tab = 3
+      } else {
+        current_tab -= 1
+      }
+      this._change_content(current_tab, 'right')
+    }
+    if (this.data.move_start_x - e.changedTouches[0].pageX > 90) {
+      if (current_tab == 3) {
+        current_tab = 0
+      } else {
+        current_tab += 1
+      }
+      this._change_content(current_tab, 'left')
+    }
   },
   onPullDownRefresh: function () {
     wx.showNavigationBarLoading()
@@ -1010,7 +1070,7 @@ Page({
       that.setData({
         playing: false,
       })
-      if (util.app_is_hide()) {
+      if (!util.app_is_hide()) {
         that.do_operate_play('next', that.get_play_mode())
       }
     })
@@ -1160,6 +1220,7 @@ Page({
   onHide: function () {
     inner_audio_context.stop()
     this.listen_play(this, 'onHide')
+
   },
   onUnload: function () {
     inner_audio_context.stop()
@@ -1229,7 +1290,7 @@ Page({
         that.pause_play_back_audio()
         that.setData({
           time2close: 0,
-          close_play_time: 0,
+          close_play_time: '',
         })
         try {
           var set_timed_int = wx.getStorageSync('set_timed_int')
@@ -1255,7 +1316,11 @@ Page({
         var last_micro_seconds = time2close - (new Date()).getTime() / 1000
         if (last_micro_seconds > 0) {
           that.setData({
-            close_play_time: parseInt(last_micro_seconds / 60.0 + 0.5),
+            close_play_time: Math.ceil(last_micro_seconds / 60.0),
+          })
+        } else {
+          that.setData({
+            close_play_time: '',
           })
         }
       }
@@ -1389,6 +1454,7 @@ Page({
     this.get_by_id(this.data.work_item.id)
   },
   set_play_list: function (toast = false) {
+    var that = this
     var data = wx.getStorageSync('audio_ids_playlist')
     if (!data) {
       var playlist = []
@@ -1460,7 +1526,7 @@ Page({
       }
       if (playlist.length == 0 && toast) {
         wx.showToast({
-          title: '播放列表为空',
+          title: that.data.fti ? '播放列表為空' : '播放列表为空',
           icon: 'none'
         })
       }
@@ -1508,6 +1574,7 @@ Page({
     this.set_play_list(true)
   },
   add_list: function (e) {
+    var that = this
     var work_id = e.currentTarget.dataset.id_
     var data = wx.getStorageSync('audio_ids_playlist')
     if (!data) {
@@ -1543,7 +1610,7 @@ Page({
       this.set_play_list()
     }
     wx.showToast({
-      title: '成功加入播放列表',
+      title: that.data.fti ? '成功加入播放列表' : '成功加入播放列表',
       icon: 'none',
     })
   },
@@ -1599,7 +1666,7 @@ Page({
     var that = this
     if (this.data.feedback_checked_value.length == 0 && this.data.feedback_remark.replaceAll(/\s/g, '').length == 0) {
       wx.showToast({
-        title: '反馈内容为空',
+        title: that.data.fti ? '反饋內容為空' : '反馈内容为空',
         icon: 'none'
       })
       return
@@ -1608,14 +1675,14 @@ Page({
       var l = this.data.feedback_remark.replaceAll(/\s/g, '').length
       if (l == 0) {
         wx.showToast({
-          title: '详细信息为空',
+          title: that.data.fti ? '詳細信息為空' : '详细信息为空',
           icon: 'none'
         })
         return
       }
       if (l <= 6) {
         wx.showToast({
-          title: '详细信息太少',
+          title: that.data.fti ? '詳細信息太少' : '详细信息太少',
           icon: 'none'
         })
         return
@@ -1623,7 +1690,7 @@ Page({
     }
     if (this.data.captcha_data.length != 6) {
       wx.showToast({
-        title: '验证码不正确',
+        title: that.data.fti ? '驗證碼不正確' : '验证码不正确',
         icon: 'none'
       })
       return
@@ -1635,13 +1702,13 @@ Page({
     }
     if (submit_cache >= 10) {
       wx.showToast({
-        title: '今天反馈太多啦',
+        title: that.data.fti ? '今天反饋太多啦' : '今天反馈太多啦',
         icon: 'none'
       })
       return
     }
     wx.showLoading({
-      title: '反馈中...',
+      title: that.data.fti ? '反饋中...' : '反馈中...',
       mask: true,
     })
     var feedback_value = 0
@@ -1652,7 +1719,7 @@ Page({
     var gsc_id = this.data.work_item.id
     if (!gsc_id) {
       wx.showToast({
-        title: '获取内容异常',
+        title: that.data.fti ? '獲取內容異常' : '获取内容异常',
         icon: 'none'
       })
       return
@@ -1677,7 +1744,7 @@ Page({
       success: function (res) {
         if (res.data.code == 0) {
           wx.showToast({
-            title: '感谢你的反馈❤️',
+            title: that.data.fti ? '感謝你的反饋❤️' : '感谢你的反馈❤️',
           })
           wx.setStorageSync(submit_cache_key, submit_cache + 1)
           that.close_feedback()
@@ -1690,7 +1757,7 @@ Page({
       },
       fail: function (res) {
         wx.showToast({
-          title: '网络异常~~',
+          title: that.data.fti ? '網絡異常' : '网络异常~~',
           icon: 'none'
         })
       }
@@ -1722,7 +1789,7 @@ Page({
       },
       fail: function () {
         wx.showToast({
-          title: '网络异常~~',
+          title: that.data.fti ? '網絡異常' : '网络异常~~',
           icon: 'none'
         })
       }
