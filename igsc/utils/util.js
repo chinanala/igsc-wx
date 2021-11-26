@@ -264,18 +264,47 @@ function simplized(cc) {
 }
 
 
-function get_open_id() {
+function get_open_id(show_toast = true) {
   var open_id = wx.getStorageSync('user_open_id')
   if (!open_id || open_id.length == 0) {
     util.user_login()
-    wx.showToast({
-      title: '未获取用户标识',
-      icon: 'none'
-    })
+    if (show_toast) {
+      wx.showToast({
+        title: '未获取用户标识',
+        icon: 'none'
+      })
+    }
     return
   }
   return open_id
 }
+
+function check_ad() {
+  var open_id = get_open_id(false)
+  if (!open_id || open_id.length == 0) {
+    wx.setStorageSync('show_ad', 1)
+    return
+  }
+  wx.request({
+    url: config.service.host + '/user/' + open_id + '/ad',
+    enableHttp2: true,
+    success: function (res) {
+      if (res.data.code == 0) {
+        if (res.data.data == 'valid') {
+          wx.setStorageSync('show_ad', 0)
+        } else {
+          wx.setStorageSync('show_ad', 1)
+        }
+        return
+      }
+      wx.setStorageSync('show_ad', 1)
+    },
+    fail: function (res) {
+      wx.setStorageSync('show_ad', 1)
+    }
+  })
+}
+
 module.exports = {
   format_time,
   show_success,
@@ -288,4 +317,5 @@ module.exports = {
   simplized,
   traditionalized,
   get_open_id,
+  check_ad,
 }

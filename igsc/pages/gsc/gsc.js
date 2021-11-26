@@ -59,6 +59,7 @@ Page({
     },
     captcha_data: '',
     move_start_x: 0,
+    show_ad: true,
   },
   set_timed: function () {
     var that = this
@@ -425,7 +426,7 @@ Page({
     }
     if (tmp0.indexOf('「') != -1) {
       var tmp1 = tmp0.match(/「(.*)」/)
-      if (tmp1 && tmp1.length > 1 && tmp1[1].length < 8) {
+      if (tmp1 && tmp1.length > 1) {
         tmp0 = tmp1[1]
       }
     }
@@ -995,6 +996,11 @@ Page({
     if (options && options.hasOwnProperty('search_pattern') && options.search_pattern) {
       this.setData({
         search_pattern: options.search_pattern,
+      })
+    }
+    if (wx.getStorageSync('show_ad') === 0) {
+      this.setData({
+        show_ad: false
       })
     }
     this.get_by_id(id_, false)

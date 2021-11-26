@@ -44,5 +44,6 @@ App({
         wx.setStorageSync('api_version', data.data.v + '')
       }
     })
+    util.check_ad()
   }
 })

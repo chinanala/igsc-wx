@@ -106,6 +106,10 @@
     <view class='translation' bindtouchstart="touch_start" bindtouchend="touch_end" data-currentab="{{current_tab}}">
       <text decode='true' space='nbsp' selectable="true">{{show_content}}</text>
     </view>
+    <!--加一个banner广告吧-->
+    <view style="margin-top: 20rpx;" wx:if="{{show_ad}}">
+      <ad unit-id="adunit-bea78055788f8f67" ad-intervals="30"></ad>
+    </view>
   </view>
   <!--以下为折叠-->
   <view bindtap="do_fold" data-folding="{{folding}}" style="position: fixed;right: 0rpx;bottom: 0rpx;opacity: 0.3;">
