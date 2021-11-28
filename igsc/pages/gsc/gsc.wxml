@@ -148,7 +148,7 @@
         </view>
         <view class="weui-cell__hd">
           <checkbox value="4" color="#617172" class="feedback_checkbox">{{fti ? '內容有誤': '内容有误'}}</checkbox>
-          <checkbox value="8" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;">{{fti ? '註釋有誤': '内容有误'}}</checkbox>
+          <checkbox value="8" color="#617172" class="feedback_checkbox" style="margin-left: 120rpx;">{{fti ? '註釋有誤': '註釋有誤'}}</checkbox>
         </view>
         <view class="weui-cell__hd">
           <checkbox value="32" color="#617172" class="feedback_checkbox">{{fti ? '排版錯亂': '排版错乱'}}</checkbox>

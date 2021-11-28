@@ -137,7 +137,7 @@ Page({
               } catch (e) {
                 time2closeS = 0
               }
-              if (!time2closeS || time2closeS == 0 || (new Date()).getTime() >= time2close * 1000) {
+              if (!time2closeS || time2closeS == 0 || (new Date()).getTime() >= (time2close - 1) * 1000) {
                 that.pause_play_back_audio()
                 that.setData({
                   time2close: 0,
@@ -1002,6 +1002,10 @@ Page({
       this.setData({
         show_ad: false
       })
+    } else {
+      this.setData({
+        show_ad: true
+      })
     }
     this.get_by_id(id_, false)
   },
@@ -1087,7 +1091,7 @@ Page({
       })
       var last_error_times = wx.getStorageSync('last_error_times')
       var now = new Date().getTime()
-      if (last_error_times && last_error_times > (now - 3000) && last_error_time.times % 3 == 0) {
+      if (last_error_times && last_error_times.time > (now - 3000) && last_error_times.times % 3 == 0) {
         console.log('错误太频繁, last_error_times: ', last_error_times, ', now: ', now)
         return
       }
@@ -1292,7 +1296,7 @@ Page({
     var that = this
     try {
       var time2close = wx.getStorageSync('time2close')
-      if (time2close && time2close > 0 && (new Date()).getTime() > time2close * 1000) {
+      if (time2close && time2close > 0 && (new Date()).getTime() > (time2close - 1) * 1000) {
         that.pause_play_back_audio()
         that.setData({
           time2close: 0,
